@@ -7,8 +7,9 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { Link } from 'expo-router';
 
-const API_KEY = "TA_CLE_API";
+const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
 
 export default function HomeScreen() {
   const [movies, setMovies] = useState<any[]>([]);
@@ -24,7 +25,7 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
       
-      {/* 🔥 BANNER */}
+      {/* 🎬 BANNER */}
       {featured && (
         <View>
           <Image
@@ -34,28 +35,39 @@ export default function HomeScreen() {
             style={styles.banner}
           />
 
+          {/* overlay sombre */}
+          <View style={styles.gradient} />
+
+          {/* texte + bouton */}
           <View style={styles.overlay}>
             <Text style={styles.title}>{featured.title}</Text>
 
             <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>▶ Watch Now</Text>
+              <Text style={styles.buttonText}>▶ Regarder</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
 
       {/* 🎬 SECTION */}
-      <Text style={styles.section}>Mi lista</Text>
+      <Text style={styles.section}>Ma liste</Text>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {movies.map((movie) => (
-          <Image
+          <Link
             key={movie.id}
-            source={{
-              uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-            }}
-            style={styles.poster}
-          />
+            href={{ pathname: '/movie/[id]', params: { id: String(movie.id) } }}
+            asChild
+          >
+            <TouchableOpacity>
+              <Image
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                }}
+                style={styles.poster}
+              />
+            </TouchableOpacity>
+          </Link>
         ))}
       </ScrollView>
 
@@ -74,29 +86,37 @@ const styles = StyleSheet.create({
     height: 250,
   },
 
+  gradient: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 120,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+
   overlay: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 30,
     left: 20,
   },
 
   title: {
     color: 'white',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
   },
 
   button: {
-    backgroundColor: '#ff2c2c',
+    backgroundColor: '#ff3b30',
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    borderRadius: 25,
   },
 
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 
   section: {
@@ -108,7 +128,7 @@ const styles = StyleSheet.create({
   poster: {
     width: 120,
     height: 180,
-    borderRadius: 10,
-    marginHorizontal: 10,
+    borderRadius: 15,
+    marginHorizontal: 8,
   },
 });

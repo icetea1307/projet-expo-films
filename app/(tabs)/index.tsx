@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { Link } from 'expo-router';
 
 const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
 
 export default function HomeScreen() {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState<any[]>([]);
 
   useEffect(() => {
     fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`)
@@ -13,56 +20,115 @@ export default function HomeScreen() {
       .then(data => setMovies(data.results));
   }, []);
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Films populaires</Text>
+  const featured = movies[0];
 
-      <FlatList
-        data={movies}
-        numColumns={2}
-        keyExtractor={(item: any) => item.id.toString()}
-        renderItem={({ item }: any) => (
+  return (
+    <ScrollView style={styles.container}>
+      
+      {/* 🎬 BANNER */}
+      {featured && (
+        <View>
+          <Image
+            source={{
+              uri: `https://image.tmdb.org/t/p/w780${featured.backdrop_path}`,
+            }}
+            style={styles.banner}
+          />
+
+          {/* overlay sombre */}
+          <View style={styles.gradient} />
+
+          {/* texte + bouton */}
+          <View style={styles.overlay}>
+            <Text style={styles.title}>{featured.title}</Text>
+
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>▶ Regarder</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* 🎬 SECTION */}
+      <Text style={styles.section}>Ma liste</Text>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {movies.map((movie) => (
           <Link
-  href={{ pathname: '/movie/[id]', params: { id: String(item.id) } }}
-  asChild
->
-            <TouchableOpacity style={styles.card}>
+            key={movie.id}
+            href={{ pathname: '/movie/[id]', params: { id: String(movie.id) } }}
+            asChild
+          >
+            <TouchableOpacity>
               <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-                style={styles.image}
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                }}
+                style={styles.poster}
               />
-              <Text style={styles.movieTitle}>{item.title}</Text>
             </TouchableOpacity>
           </Link>
-        )}
-      />
-    </View>
+        ))}
+      </ScrollView>
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
-    padding: 10,
+    backgroundColor: '#0b0b0f',
   },
+
+  banner: {
+    width: '100%',
+    height: 250,
+  },
+
+  gradient: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 120,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+
+  overlay: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+  },
+
   title: {
     color: 'white',
-    fontSize: 22,
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 10,
   },
-  card: {
-    flex: 1,
-    margin: 5,
+
+  button: {
+    backgroundColor: '#ff3b30',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 25,
   },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-  },
-  movieTitle: {
+
+  buttonText: {
     color: 'white',
-    marginTop: 5,
-    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  section: {
+    color: 'white',
+    fontSize: 18,
+    margin: 15,
+  },
+
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 15,
+    marginHorizontal: 8,
   },
 });

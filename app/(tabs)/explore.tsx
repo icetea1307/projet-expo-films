@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useState } from "react";
 import {
-  View,
-  TextInput,
-  StyleSheet,
   FlatList,
-  Text,
   Image,
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
 
 export default function ExploreScreen() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
 
   const searchMovies = async (text: string) => {
@@ -24,7 +24,7 @@ export default function ExploreScreen() {
     }
 
     const res = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${text}`
+      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${text}`,
     );
 
     const data = await res.json();
@@ -72,33 +72,33 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0B0F',
+    backgroundColor: "#0B0B0F",
     paddingTop: 20,
     paddingHorizontal: 16,
   },
   searchBar: {
     height: 48,
-    backgroundColor: '#15161A',
+    backgroundColor: "#15161A",
     borderRadius: 14,
     paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   input: {
     flex: 1,
-    color: 'white',
+    color: "white",
     marginLeft: 10,
     fontSize: 15,
   },
   noResult: {
-    color: 'white',
-    textAlign: 'center',
+    color: "white",
+    textAlign: "center",
     marginTop: 20,
   },
   card: {
     marginVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   image: {
     width: 120,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   title: {
-    color: 'white',
+    color: "white",
     marginTop: 5,
   },
 });

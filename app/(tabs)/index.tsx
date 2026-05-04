@@ -1,168 +1,314 @@
-import { useEffect, useRef, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
+  FlatList,
   Image,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-} from 'react-native';
-import { Link } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+  View,
+} from "react-native";
 
 const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
 
 export default function HomeScreen() {
   const [movies, setMovies] = useState<any[]>([]);
-  const scrollRef = useRef<ScrollView>(null);
-  const scrollPosition = useRef(0);
+  const listRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`)
-      .then(res => res.json())
-      .then(data => setMovies(data.results));
+    fetch(
+      `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=fr-FR`,
+    )
+      .then((res) => res.json())
+      .then((data) => setMovies(data.results || []));
   }, []);
 
   const featured = movies[0];
 
-  const scrollRight = () => {
-    scrollPosition.current += 500;
-    scrollRef.current?.scrollTo({
-      x: scrollPosition.current,
-      animated: true,
-    });
-  };
-
-  const scrollLeft = () => {
-    scrollPosition.current = Math.max(0, scrollPosition.current - 500);
-    scrollRef.current?.scrollTo({
-      x: scrollPosition.current,
-      animated: true,
-    });
-  };
-
   return (
-    <ScrollView style={styles.container}>
-      {featured && (
-        <View>
-          <Image
-            source={{
-              uri: `https://image.tmdb.org/t/p/w780${featured.backdrop_path}`,
-            }}
-            style={styles.banner}
-          />
+    <ScrollView style={styles.page} showsVerticalScrollIndicator={false}>
+      <View style={styles.mobileContainer}>
+        {featured && (
+          <View style={styles.hero}>
+            <Image
+              source={{
+                uri: `https://image.tmdb.org/t/p/original${featured.backdrop_path}`,
+              }}
+              style={styles.heroImage}
+            />
 
-          <View style={styles.gradient} />
+            <View style={styles.heroOverlay} />
 
-          <View style={styles.overlay}>
-            <Text style={styles.title}>{featured.title}</Text>
+            <View style={styles.topBar}>
+              <Ionicons name="menu" size={22} color="white" />
+              <Ionicons name="search" size={20} color="white" />
+            </View>
 
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>▶ Regarder</Text>
-            </TouchableOpacity>
+            <View style={styles.heroContent}>
+              <Text style={styles.smallLabel}>Film</Text>
+              <Text style={styles.heroTitle}>{featured.title}</Text>
+              <Text style={styles.heroText} numberOfLines={3}>
+                {featured.overview ||
+                  "Découvrez ce film populaire dès maintenant."}
+              </Text>
+            </View>
           </View>
-        </View>
-      )}
+        )}
 
-      <Text style={styles.section}>Ma liste</Text>
+        <Text style={styles.sectionTitle}>Ma liste</Text>
 
-      <View style={styles.sliderContainer}>
-        <TouchableOpacity style={styles.arrowButton} onPress={scrollLeft}>
-          <Ionicons name="chevron-back" size={28} color="white" />
-        </TouchableOpacity>
-
-        <ScrollView
-          ref={scrollRef}
+        <FlatList
+          ref={listRef}
+          data={movies.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.movieScroll}
-        >
-          {movies.map((movie) => (
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.horizontalList}
+          renderItem={({ item }) => (
             <Link
-              key={movie.id}
-              href={{ pathname: '/movie/[id]', params: { id: String(movie.id) } }}
+              href={{
+                pathname: "/movie/[id]",
+                params: { id: String(item.id) },
+              }}
               asChild
             >
-              <TouchableOpacity>
+              <TouchableOpacity style={styles.smallCard}>
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                  }}
+                  style={styles.smallPoster}
+                />
+              </TouchableOpacity>
+            </Link>
+          )}
+        />
+
+        <Text style={styles.sectionTitle}>Seulement sur Movie+</Text>
+
+        <View style={styles.featureRow}>
+          {movies.slice(8, 10).map((movie) => (
+            <Link
+              key={movie.id}
+              href={{
+                pathname: "/movie/[id]",
+                params: { id: String(movie.id) },
+              }}
+              asChild
+            >
+              <TouchableOpacity style={styles.bigCard}>
                 <Image
                   source={{
                     uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
                   }}
-                  style={styles.poster}
+                  style={styles.bigPoster}
                 />
               </TouchableOpacity>
             </Link>
           ))}
-        </ScrollView>
+        </View>
 
-        <TouchableOpacity style={styles.arrowButton} onPress={scrollRight}>
-          <Ionicons name="chevron-forward" size={28} color="white" />
+        <TouchableOpacity style={styles.exploreButton}>
+          <Text style={styles.exploreText}>EXPLORER</Text>
         </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Nouveautés</Text>
+
+        <FlatList
+          data={movies.slice(10, 18)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => `new-${item.id}`}
+          contentContainerStyle={styles.horizontalList}
+          renderItem={({ item }) => (
+            <Link
+              href={{
+                pathname: "/movie/[id]",
+                params: { id: String(item.id) },
+              }}
+              asChild
+            >
+              <TouchableOpacity style={styles.smallCard}>
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                  }}
+                  style={styles.smallPoster}
+                />
+              </TouchableOpacity>
+            </Link>
+          )}
+        />
+
+        <Text style={styles.sectionTitle}>Films populaires</Text>
+
+        <View style={styles.grid}>
+          {movies.slice(0, 6).map((movie) => (
+            <Link
+              key={`top-${movie.id}`}
+              href={{
+                pathname: "/movie/[id]",
+                params: { id: String(movie.id) },
+              }}
+              asChild
+            >
+              <TouchableOpacity style={styles.gridCard}>
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                  }}
+                  style={styles.gridPoster}
+                />
+              </TouchableOpacity>
+            </Link>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  page: {
     flex: 1,
-    backgroundColor: '#0b0b0f',
+    backgroundColor: "#080611",
   },
-  banner: {
-    width: '100%',
-    height: 250,
+
+  mobileContainer: {
+    width: "100%",
+    maxWidth: 430,
+    alignSelf: "center",
+    backgroundColor: "#080611",
+    minHeight: "100%",
   },
-  gradient: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    height: 120,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+
+  hero: {
+    height: 360,
+    borderBottomLeftRadius: 26,
+    borderBottomRightRadius: 26,
+    overflow: "hidden",
+    position: "relative",
   },
-  overlay: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
+
+  heroImage: {
+    width: "100%",
+    height: "100%",
   },
-  title: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
+
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+
+  topBar: {
+    position: "absolute",
+    top: 45,
+    left: 18,
+    right: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  heroContent: {
+    position: "absolute",
+    bottom: 35,
+    left: 22,
+    right: 22,
+    alignItems: "center",
+  },
+
+  smallLabel: {
+    color: "#ddd",
+    fontSize: 12,
+    marginBottom: 4,
+  },
+
+  heroTitle: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  heroText: {
+    color: "#ddd",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 12,
+    lineHeight: 18,
+  },
+
+  sectionTitle: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 20,
     marginBottom: 10,
+    marginLeft: 18,
   },
-  button: {
-    backgroundColor: '#ff3b30',
-    paddingVertical: 10,
+
+  horizontalList: {
     paddingHorizontal: 18,
-    borderRadius: 25,
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
+
+  smallCard: {
+    marginRight: 12,
   },
-  section: {
-    color: 'white',
-    fontSize: 18,
-    margin: 15,
+
+  smallPoster: {
+    width: 95,
+    height: 135,
+    borderRadius: 14,
   },
-  sliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+
+  featureRow: {
+    flexDirection: "row",
+    paddingHorizontal: 18,
+    gap: 14,
   },
-  movieScroll: {
+
+  bigCard: {
     flex: 1,
   },
-  arrowButton: {
-    width: 42,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+
+  bigPoster: {
+    width: "100%",
+    height: 170,
+    borderRadius: 16,
   },
-  poster: {
-    width: 120,
-    height: 180,
-    borderRadius: 15,
-    marginHorizontal: 8,
+
+  exploreButton: {
+    backgroundColor: "#6C2BFF",
+    marginHorizontal: 55,
+    marginTop: 18,
+    paddingVertical: 12,
+    borderRadius: 2,
+  },
+
+  exploreText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 18,
+    gap: 12,
+    paddingBottom: 30,
+  },
+
+  gridCard: {
+    width: "30.5%",
+  },
+
+  gridPoster: {
+    width: "100%",
+    height: 145,
+    borderRadius: 14,
   },
 });

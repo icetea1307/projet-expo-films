@@ -1,148 +1,80 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons'; // Pour les icônes Figma
+import { ThemedText } from '@/components/ThemedText';
+import { Colors } from '@/constants/Colors';
 
-const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
+export default function MovieDetails() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
 
-type Movie = {
-  id: number;
-  title: string;
-  overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  vote_average: number;
-  release_date: string;
-  runtime: number;
-};
-
-export default function MovieDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [movie, setMovie] = useState<Movie | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-
-    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=fr-FR`)
-      .then((res) => res.json())
-      .then((data) => setMovie(data))
-      .catch((error) => console.log('Erreur API:', error))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E50914" />
-        <Text style={styles.loadingText}>Chargement...</Text>
-      </View>
-    );
-  }
-
-  if (!movie) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Film introuvable</Text>
-      </View>
-    );
-  }
-
-  const posterUrl = movie.poster_path
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-    : 'https://via.placeholder.com/500x750?text=No+Image';
-
-  const backdropUrl = movie.backdrop_path
-    ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
-    : posterUrl;
+  // Ici tu feras ton fetch(API + id) plus tard
+  const movie = {
+    title: "Inception",
+    description: "Your API description will go here...",
+    rating: "8.8",
+    image: "https://image.tmdb.org/t/p/w500/your_path.jpg"
+  };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Image source={{ uri: backdropUrl }} style={styles.backdrop} />
+    <ScrollView style={styles.container} bounces={false}>
+      {/* 1. Image de fond avec dégradé */}
+      <View style={styles.header}>
+        <Image source={{ uri: movie.image }} style={styles.backdrop} />
+        <LinearGradient
+          colors={['transparent', 'rgba(15, 17, 26, 0.8)', '#0F111A']} // Adapte la couleur à ton Figma
+          style={styles.gradient}
+        />
+        
+        {/* Bouton Retour */}
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={28} color="white" />
+        </TouchableOpacity>
+      </View>
 
+      {/* 2. Infos du film */}
       <View style={styles.content}>
-        <Image source={{ uri: posterUrl }} style={styles.poster} />
-
-        <Text style={styles.title}>{movie.title}</Text>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoText}>⭐ {movie.vote_average.toFixed(1)}</Text>
-          <Text style={styles.infoText}>📅 {movie.release_date || 'N/A'}</Text>
-          <Text style={styles.infoText}>⏱ {movie.runtime || 0} min</Text>
+        <ThemedText type="title" style={styles.title}>{movie.title}</ThemedText>
+        
+        <View style={styles.statsRow}>
+          <Ionicons name="star" size={16} color="#FFAB2E" />
+          <Text style={styles.rating}>{movie.rating} (IMDb)</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Synopsis</Text>
-        <Text style={styles.overview}>
-          {movie.overview || 'Aucune description disponible.'}
-        </Text>
+        {/* 3. Bouton Play (Le gros bouton coloré de Figma) */}
+        <TouchableOpacity style={styles.playButton}>
+          <Ionicons name="play" size={24} color="white" />
+          <Text style={styles.playText}>Play</Text>
+        </TouchableOpacity>
+
+        <ThemedText style={styles.description}>
+          {movie.description}
+        </ThemedText>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f0f0f',
+  container: { flex: 1, backgroundColor: '#0F111A' },
+  header: { height: 450, width: '100%' },
+  backdrop: { ...StyleSheet.absoluteFillObject },
+  gradient: { ...StyleSheet.absoluteFillObject },
+  backButton: { position: 'absolute', top: 50, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 8 },
+  content: { padding: 20, marginTop: -50 }, // Remonte un peu sur l'image
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 10 },
+  statsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  rating: { color: '#FFAB2E', marginLeft: 8, fontWeight: '600' },
+  playButton: { 
+    backgroundColor: '#E21221', // Couleur typique Netflix/Streaming
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 15, 
+    borderRadius: 30,
+    marginBottom: 20 
   },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#0f0f0f',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: 'white',
-    marginTop: 12,
-    fontSize: 16,
-  },
-  backdrop: {
-    width: '100%',
-    height: 240,
-  },
-  content: {
-    padding: 16,
-    marginTop: -60,
-  },
-  poster: {
-    width: 140,
-    height: 210,
-    borderRadius: 14,
-    alignSelf: 'center',
-    marginBottom: 18,
-  },
-  title: {
-    color: 'white',
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-    gap: 8,
-  },
-  infoText: {
-    color: '#d1d1d1',
-    fontSize: 13,
-  },
-  sectionTitle: {
-    color: '#E50914',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  overview: {
-    color: 'white',
-    fontSize: 15,
-    lineHeight: 22,
-  },
+  playText: { color: 'white', fontSize: 18, fontWeight: 'bold', marginLeft: 10 },
+  description: { lineHeight: 22, opacity: 0.8 }
 });

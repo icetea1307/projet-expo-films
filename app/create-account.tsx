@@ -16,6 +16,7 @@ export default function CreateAccountScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const createAccount = async () => {
     if (!email || !password || !confirmPassword) {
@@ -25,6 +26,11 @@ export default function CreateAccountScreen() {
 
     if (password !== confirmPassword) {
       Alert.alert("Erreur", "Les mots de passe ne correspondent pas");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      Alert.alert("Erreur", "Tu dois accepter les conditions.");
       return;
     }
 
@@ -88,12 +94,23 @@ export default function CreateAccountScreen() {
           <Ionicons name="eye-outline" size={24} color="white" />
         </View>
 
-        <View style={styles.termsRow}>
-          <View style={styles.checkbox} />
+        <TouchableOpacity
+          style={styles.termsRow}
+          onPress={() => setAcceptedTerms(!acceptedTerms)}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}
+          >
+            {acceptedTerms && (
+              <Ionicons name="checkmark" size={18} color="white" />
+            )}
+          </View>
+
           <Text style={styles.termsText}>
             J’accepte les conditions et la politique de confidentialité
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={createAccount}>
           <Text style={styles.buttonText}>Créer le compte</Text>
@@ -162,12 +179,18 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderWidth: 1.5,
     borderColor: "white",
     borderRadius: 6,
     marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkboxChecked: {
+    backgroundColor: "#7B22FF",
+    borderColor: "#7B22FF",
   },
   termsText: {
     color: "white",

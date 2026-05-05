@@ -53,10 +53,10 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "acaf06c7-edbf-43bd-ace4-3c61ee0afca5"
+        "projectId": "b2cf1a6f-5d01-46f6-852e-5b829f7935ef"
       }
     },
-    "owner": "agghugo",
+    "owner": "ninjaflix",
     "runtimeVersion": {
       "policy": "appVersion"
     },

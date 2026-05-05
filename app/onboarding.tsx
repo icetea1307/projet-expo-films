@@ -1,5 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
+  FlatList,
   ImageBackground,
   StyleSheet,
   Text,
@@ -7,30 +11,118 @@ import {
   View,
 } from "react-native";
 
+const { width, height } = Dimensions.get("window");
+
+const slides = [
+  {
+    id: "1",
+    title: "LES MEILLEURS\nFILMS POUR VOUS",
+    description:
+      "Découvrez les films les plus populaires, les nouveautés et vos favoris.",
+    image:
+      "https://image.tmdb.org/t/p/original/8Y43POKjjKDGI9MH89NW0NAzzp8.jpg",
+  },
+  {
+    id: "2",
+    title: "RECHERCHEZ\nVOS FILMS",
+    description:
+      "Trouvez rapidement un film et consultez toutes ses informations.",
+    image:
+      "https://image.tmdb.org/t/p/original/9BBTo63ANSmhC4e6r62OJFuK2GL.jpg",
+  },
+  {
+    id: "3",
+    title: "VOTRE CINÉMA\nDANS LA POCHE",
+    description:
+      "Explorez Ninja+ et accédez à votre catalogue de films facilement.",
+    image:
+      "https://image.tmdb.org/t/p/original/5P8SmMzSNYikXpxil6BYzJ16611.jpg",
+  },
+];
+
 export default function OnboardingScreen() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const listRef = useRef<FlatList>(null);
+
+  const goToSlide = (index: number) => {
+    listRef.current?.scrollToIndex({
+      index,
+      animated: true,
+    });
+    setCurrentIndex(index);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nextIndex =
+        currentIndex === slides.length - 1 ? 0 : currentIndex + 1;
+      goToSlide(nextIndex);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
   return (
-    <ImageBackground
-      source={{
-        uri: "https://wallpapers.com/images/hd/spider-man-miles-morales-4k-w4wbs0yqedqwe2r7.jpg",
-      }}
-      style={styles.container}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
+    <View style={styles.container}>
+      <FlatList
+        ref={listRef}
+        data={slides}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id}
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentIndex(index);
+        }}
+        renderItem={({ item }) => (
+          <ImageBackground
+            source={{ uri: item.image }}
+            style={styles.slide}
+            resizeMode="cover"
+          >
+            <View style={styles.overlay} />
 
-      <View style={styles.content}>
-        <Text style={styles.title}>LES MEILLEURS{"\n"}FILMS POUR VOUS</Text>
+            <View style={styles.content}>
+              <Text style={styles.title}>{item.title}</Text>
 
-        <View style={styles.dots}>
-          <View style={styles.dotActive} />
-          <View style={styles.dot} />
-        </View>
+              <View style={styles.dots}>
+                {slides.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.dot,
+                      currentIndex === index && styles.dotActive,
+                    ]}
+                  />
+                ))}
+              </View>
 
-        <Text style={styles.description}>
-          Découvrez les films les plus populaires, les nouveautés et vos
-          favoris. Recherchez facilement un film et consultez ses détails.
-        </Text>
+              <Text style={styles.description}>{item.description}</Text>
+            </View>
+          </ImageBackground>
+        )}
+      />
 
+      <TouchableOpacity
+        style={[styles.arrow, styles.leftArrow]}
+        onPress={() =>
+          goToSlide(currentIndex === 0 ? slides.length - 1 : currentIndex - 1)
+        }
+      >
+        <Ionicons name="chevron-back" size={34} color="white" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.arrow, styles.rightArrow]}
+        onPress={() =>
+          goToSlide(currentIndex === slides.length - 1 ? 0 : currentIndex + 1)
+        }
+      >
+        <Ionicons name="chevron-forward" size={34} color="white" />
+      </TouchableOpacity>
+
+      <View style={styles.buttons}>
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={() => router.push("/create-account" as any)}
@@ -52,29 +144,26 @@ export default function OnboardingScreen() {
           <Text style={styles.outlineText}>Se connecter</Text>
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "#050016",
-  },
+  container: { flex: 1, backgroundColor: "#050016" },
+  slide: { width, height, justifyContent: "flex-end" },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(5, 0, 30, 0.5)",
+    backgroundColor: "rgba(5, 0, 30, 0.52)",
   },
   content: {
     paddingHorizontal: 22,
-    paddingBottom: 40,
+    paddingBottom: 250,
     alignItems: "center",
   },
   title: {
     color: "white",
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: "900",
     textAlign: "center",
     textTransform: "uppercase",
@@ -85,27 +174,38 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 30,
   },
-  dotActive: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "white",
-  },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.45)",
   },
+  dotActive: { backgroundColor: "white" },
   description: {
     color: "#E5E5E5",
     fontSize: 13,
     lineHeight: 20,
     textAlign: "center",
-    marginBottom: 30,
+  },
+  arrow: {
+    position: "absolute",
+    top: "45%",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  leftArrow: { left: 15 },
+  rightArrow: { right: 15 },
+  buttons: {
+    position: "absolute",
+    left: 22,
+    right: 22,
+    bottom: 40,
   },
   primaryButton: {
-    width: "100%",
     backgroundColor: "#7B22FF",
     paddingVertical: 15,
     marginBottom: 14,
@@ -118,13 +218,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   outlineButton: {
-    width: "100%",
     borderWidth: 1.5,
     borderColor: "#8A2BFF",
     paddingVertical: 14,
     marginBottom: 14,
     borderRadius: 4,
-    backgroundColor: "rgba(0,0,0,0.2)",
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
   outlineText: {
     color: "white",

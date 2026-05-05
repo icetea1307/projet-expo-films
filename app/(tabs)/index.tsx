@@ -1,172 +1,201 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   Image,
-  ScrollView,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 const API_KEY = "f3d3ad9ea60a687311952816106b86a3";
 
+type Movie = {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+};
+
 export default function HomeScreen() {
-  const [movies, setMovies] = useState<any[]>([]);
-  const listRef = useRef<FlatList>(null);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchMovies = async () => {
+    try {
+      setError("");
+
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=fr-FR`,
+      );
+
+      const data = await response.json();
+
+      if (!data.results) {
+        setMovies([]);
+        setError("Impossible de récupérer les films.");
+        return;
+      }
+
+      setMovies(data.results);
+    } catch {
+      setError("Erreur réseau. Vérifie ta connexion.");
+      setMovies([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    fetch(
-      `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=fr-FR`,
-    )
-      .then((res) => res.json())
-      .then((data) => setMovies(data.results || []));
+    fetchMovies();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchMovies();
   }, []);
 
   const featured = movies[0];
 
-  return (
-    <ScrollView style={styles.page} showsVerticalScrollIndicator={false}>
-      <View style={styles.mobileContainer}>
-        {featured && (
-          <View style={styles.hero}>
-            <Image
-              source={{
-                uri: `https://image.tmdb.org/t/p/original${featured.backdrop_path}`,
-              }}
-              style={styles.heroImage}
-            />
+  const renderHeader = () => (
+    <View>
+      {featured && (
+        <View style={styles.hero}>
+          <Image
+            source={{
+              uri: `https://image.tmdb.org/t/p/original${featured.backdrop_path}`,
+            }}
+            style={styles.heroImage}
+          />
 
-            <View style={styles.heroOverlay} />
+          <View style={styles.heroOverlay} />
 
-            <View style={styles.topBar}>
-              <Ionicons name="menu" size={22} color="white" />
-              <Ionicons name="search" size={20} color="white" />
-            </View>
-
-            <View style={styles.heroContent}>
-              <Text style={styles.smallLabel}>Film</Text>
-              <Text style={styles.heroTitle}>{featured.title}</Text>
-              <Text style={styles.heroText} numberOfLines={3}>
-                {featured.overview ||
-                  "Découvrez ce film populaire dès maintenant."}
-              </Text>
-            </View>
+          <View style={styles.topBar}>
+            <Ionicons name="menu" size={22} color="white" />
+            <Text style={styles.logo}>Ninja+</Text>
+            <Ionicons name="search" size={20} color="white" />
           </View>
-        )}
 
-        <Text style={styles.sectionTitle}>Ma liste</Text>
-
-        <FlatList
-          ref={listRef}
-          data={movies.slice(0, 8)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.horizontalList}
-          renderItem={({ item }) => (
-            <Link
-              href={{
-                pathname: "/movie/[id]",
-                params: { id: String(item.id) },
-              }}
-              asChild
-            >
-              <TouchableOpacity style={styles.smallCard}>
-                <Image
-                  source={{
-                    uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-                  }}
-                  style={styles.smallPoster}
-                />
-              </TouchableOpacity>
-            </Link>
-          )}
-        />
-
-        <Text style={styles.sectionTitle}>Seulement sur Movie+</Text>
-
-        <View style={styles.featureRow}>
-          {movies.slice(8, 10).map((movie) => (
-            <Link
-              key={movie.id}
-              href={{
-                pathname: "/movie/[id]",
-                params: { id: String(movie.id) },
-              }}
-              asChild
-            >
-              <TouchableOpacity style={styles.bigCard}>
-                <Image
-                  source={{
-                    uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-                  }}
-                  style={styles.bigPoster}
-                />
-              </TouchableOpacity>
-            </Link>
-          ))}
+          <View style={styles.heroContent}>
+            <Text style={styles.smallLabel}>Film populaire</Text>
+            <Text style={styles.heroTitle}>{featured.title}</Text>
+            <Text style={styles.heroText} numberOfLines={3}>
+              {featured.overview ||
+                "Découvrez ce film populaire dès maintenant."}
+            </Text>
+          </View>
         </View>
+      )}
 
-        <TouchableOpacity style={styles.exploreButton}>
-          <Text style={styles.exploreText}>EXPLORER</Text>
-        </TouchableOpacity>
+      <Text style={styles.sectionTitle}>Films populaires</Text>
+    </View>
+  );
 
-        <Text style={styles.sectionTitle}>Nouveautés</Text>
+  const renderSkeleton = () => (
+    <View style={styles.skeletonContainer}>
+      {[1, 2, 3, 4, 5, 6].map((item) => (
+        <View key={item} style={styles.skeletonCard} />
+      ))}
+    </View>
+  );
 
-        <FlatList
-          data={movies.slice(10, 18)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => `new-${item.id}`}
-          contentContainerStyle={styles.horizontalList}
-          renderItem={({ item }) => (
-            <Link
-              href={{
-                pathname: "/movie/[id]",
-                params: { id: String(item.id) },
-              }}
-              asChild
-            >
-              <TouchableOpacity style={styles.smallCard}>
-                <Image
-                  source={{
-                    uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-                  }}
-                  style={styles.smallPoster}
-                />
-              </TouchableOpacity>
-            </Link>
-          )}
-        />
-
-        <Text style={styles.sectionTitle}>Films populaires</Text>
-
-        <View style={styles.grid}>
-          {movies.slice(0, 6).map((movie) => (
-            <Link
-              key={`top-${movie.id}`}
-              href={{
-                pathname: "/movie/[id]",
-                params: { id: String(movie.id) },
-              }}
-              asChild
-            >
-              <TouchableOpacity style={styles.gridCard}>
-                <Image
-                  source={{
-                    uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-                  }}
-                  style={styles.gridPoster}
-                />
-              </TouchableOpacity>
-            </Link>
-          ))}
+  if (loading) {
+    return (
+      <View style={styles.page}>
+        <View style={styles.mobileContainer}>
+          <View style={styles.skeletonHero} />
+          {renderSkeleton()}
         </View>
       </View>
-    </ScrollView>
+    );
+  }
+
+  return (
+    <View style={styles.page}>
+      <View style={styles.mobileContainer}>
+        <FlatList
+          data={movies}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={3}
+          ListHeaderComponent={renderHeader}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#7B22FF"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyBox}>
+              {error ? (
+                <>
+                  <Text style={styles.emptyTitle}>Erreur</Text>
+                  <Text style={styles.emptyText}>{error}</Text>
+
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={fetchMovies}
+                  >
+                    <Text style={styles.retryText}>Réessayer</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.emptyTitle}>Aucun film</Text>
+                  <Text style={styles.emptyText}>
+                    Aucune donnée disponible.
+                  </Text>
+                </>
+              )}
+            </View>
+          }
+          renderItem={({ item, index }) => (
+            <Animated.View
+              entering={FadeInUp.delay(index * 60)}
+              style={styles.gridCard}
+            >
+              <Link
+                href={{
+                  pathname: "/movie/[id]",
+                  params: { id: String(item.id) },
+                }}
+                asChild
+              >
+                <TouchableOpacity activeOpacity={0.8}>
+                  <Image
+                    source={{
+                      uri: item.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                        : "https://via.placeholder.com/500x750?text=No+Image",
+                    }}
+                    style={styles.gridPoster}
+                  />
+
+                  <Text style={styles.movieTitle} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+              </Link>
+            </Animated.View>
+          )}
+          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={styles.gridRow}
+          showsVerticalScrollIndicator={false}
+          windowSize={7}
+          maxToRenderPerBatch={6}
+          initialNumToRender={6}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -177,11 +206,11 @@ const styles = StyleSheet.create({
   },
 
   mobileContainer: {
+    flex: 1,
     width: "100%",
     maxWidth: 430,
     alignSelf: "center",
     backgroundColor: "#080611",
-    minHeight: "100%",
   },
 
   hero: {
@@ -190,6 +219,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 26,
     overflow: "hidden",
     position: "relative",
+    marginBottom: 18,
   },
 
   heroImage: {
@@ -208,7 +238,14 @@ const styles = StyleSheet.create({
     left: 18,
     right: 18,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
+  },
+
+  logo: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "900",
   },
 
   heroContent: {
@@ -242,73 +279,88 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-    marginTop: 20,
-    marginBottom: 10,
-    marginLeft: 18,
-  },
-
-  horizontalList: {
-    paddingHorizontal: 18,
-  },
-
-  smallCard: {
-    marginRight: 12,
-  },
-
-  smallPoster: {
-    width: 95,
-    height: 135,
-    borderRadius: 14,
-  },
-
-  featureRow: {
-    flexDirection: "row",
-    paddingHorizontal: 18,
-    gap: 14,
-  },
-
-  bigCard: {
-    flex: 1,
-  },
-
-  bigPoster: {
-    width: "100%",
-    height: 170,
-    borderRadius: 16,
-  },
-
-  exploreButton: {
-    backgroundColor: "#6C2BFF",
-    marginHorizontal: 55,
-    marginTop: 18,
-    paddingVertical: 12,
-    borderRadius: 2,
-  },
-
-  exploreText: {
-    color: "white",
-    textAlign: "center",
+    fontSize: 18,
     fontWeight: "800",
-    fontSize: 13,
+    marginLeft: 18,
+    marginBottom: 12,
   },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 18,
-    gap: 12,
+  listContent: {
     paddingBottom: 30,
   },
 
+  gridRow: {
+    paddingHorizontal: 18,
+    gap: 12,
+    marginBottom: 16,
+  },
+
   gridCard: {
-    width: "30.5%",
+    flex: 1,
   },
 
   gridPoster: {
     width: "100%",
     height: 145,
     borderRadius: 14,
+    backgroundColor: "#1A1725",
+  },
+
+  movieTitle: {
+    color: "white",
+    fontSize: 11,
+    marginTop: 6,
+  },
+
+  emptyBox: {
+    padding: 30,
+    alignItems: "center",
+  },
+
+  emptyTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    color: "#aaa",
+    textAlign: "center",
+  },
+
+  retryButton: {
+    backgroundColor: "#7B22FF",
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 18,
+  },
+
+  retryText: {
+    color: "white",
+    fontWeight: "700",
+  },
+
+  skeletonHero: {
+    height: 360,
+    backgroundColor: "#1A1725",
+    borderBottomLeftRadius: 26,
+    borderBottomRightRadius: 26,
+    marginBottom: 25,
+  },
+
+  skeletonContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 18,
+    gap: 12,
+  },
+
+  skeletonCard: {
+    width: "30.5%",
+    height: 145,
+    borderRadius: 14,
+    backgroundColor: "#1A1725",
   },
 });

@@ -3,13 +3,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    ImageBackground,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function CreateAccountScreen() {
@@ -131,22 +131,30 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 55,
+    paddingHorizontal: 20,
+    paddingTop: 45,
+    paddingBottom: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: "100%",
   },
   title: {
     color: "white",
-    fontSize: 46,
-    lineHeight: 54,
+    fontSize: 40,
+    lineHeight: 48,
     fontWeight: "900",
     marginTop: 20,
-    marginBottom: 18,
+    marginBottom: 25,
+    textAlign: "center",
+    width: "100%",
   },
   label: {
     color: "white",
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: "700",
     marginBottom: 8,
+    width: "100%",
+    maxWidth: 350,
   },
   input: {
     height: 48,
@@ -156,7 +164,10 @@ const styles = StyleSheet.create({
     color: "white",
     paddingHorizontal: 16,
     fontSize: 16,
-    marginBottom: 22,
+    marginBottom: 20,
+    width: "100%",
+    maxWidth: 350,
+    borderRadius: 6,
   },
   inputIcon: {
     height: 48,
@@ -164,9 +175,12 @@ const styles = StyleSheet.create({
     borderColor: "#A02BFF",
     backgroundColor: "rgba(80, 25, 160, 0.65)",
     paddingHorizontal: 16,
-    marginBottom: 22,
+    marginBottom: 20,
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
+    maxWidth: 350,
+    borderRadius: 6,
   },
   passwordInput: {
     flex: 1,
@@ -175,8 +189,10 @@ const styles = StyleSheet.create({
   },
   termsRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: 28,
+    width: "100%",
+    maxWidth: 350,
   },
   checkbox: {
     width: 24,
@@ -184,9 +200,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "white",
     borderRadius: 6,
-    marginRight: 10,
+    marginRight: 12,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 2,
+    flexShrink: 0,
   },
   checkboxChecked: {
     backgroundColor: "#7B22FF",
@@ -195,16 +213,20 @@ const styles = StyleSheet.create({
   termsText: {
     color: "white",
     flex: 1,
-    fontSize: 15,
+    fontSize: 13,
+    lineHeight: 18,
   },
   button: {
     backgroundColor: "#7B22FF",
-    paddingVertical: 15,
+    paddingVertical: 14,
+    width: "100%",
+    maxWidth: 350,
+    borderRadius: 6,
   },
   buttonText: {
     color: "white",
     textAlign: "center",
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
   },
 });

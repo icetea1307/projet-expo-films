@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ViewToken, // <-- AJOUT 1: Nécessaire pour la détection du scroll
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -43,8 +44,10 @@ const slides = [
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const listRef = useRef<FlatList>(null);
+  const timerRef = useRef<number | null>(null); // <-- AJOUT 2: Pour gérer l'autoplay sans bug
 
   const goToSlide = (index: number) => {
+    if (index < 0 || index >= slides.length) return;
     listRef.current?.scrollToIndex({
       index,
       animated: true,
@@ -52,15 +55,39 @@ export default function OnboardingScreen() {
     setCurrentIndex(index);
   };
 
+  // --- DÉBUT DES MODIFICATIONS DE LOGIQUE ---
+
+  // Détecte précisément l'image affichée à l'écran
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  // Obligatoire pour que scrollToIndex fonctionne parfaitement
+  const getItemLayout = (_: any, index: number) => ({
+    length: width,
+    offset: width * index,
+    index,
+  });
+
+  // Autoplay corrigé
   useEffect(() => {
-    const interval = setInterval(() => {
-      const nextIndex =
-        currentIndex === slides.length - 1 ? 0 : currentIndex + 1;
-      goToSlide(nextIndex);
+    timerRef.current = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = prevIndex === slides.length - 1 ? 0 : prevIndex + 1;
+        listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        return nextIndex;
+      });
     }, 3000);
 
-    return () => clearInterval(interval);
-  }, [currentIndex]);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+  // --- FIN DES MODIFICATIONS DE LOGIQUE ---
 
   return (
     <View style={styles.container}>
@@ -71,10 +98,17 @@ export default function OnboardingScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
-          setCurrentIndex(index);
+        
+        // --- NOUVELLES PROPS AJOUTÉES ICI ---
+        getItemLayout={getItemLayout}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        onScrollBeginDrag={() => {
+          // Coupe l'autoplay si l'utilisateur glisse le doigt
+          if (timerRef.current) clearInterval(timerRef.current);
         }}
+        // ------------------------------------
+
         renderItem={({ item }) => (
           <ImageBackground
             source={{ uri: item.image }}
@@ -103,6 +137,8 @@ export default function OnboardingScreen() {
           </ImageBackground>
         )}
       />
+
+      {/* TOUT LE RESTE EST EXACTEMENT TON CODE */}
 
       <TouchableOpacity
         style={[styles.arrow, styles.leftArrow]}

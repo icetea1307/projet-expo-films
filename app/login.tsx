@@ -2,12 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function LoginScreen() {
@@ -63,14 +63,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#080611",
     justifyContent: "center",
-    padding: 25,
+    alignItems: "center",
+    padding: 20,
   },
   title: {
     color: "white",
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: 35,
     textAlign: "center",
+    width: "100%",
   },
   input: {
     borderWidth: 1.5,
@@ -79,11 +81,17 @@ const styles = StyleSheet.create({
     color: "white",
     padding: 14,
     marginBottom: 18,
+    width: "100%",
+    maxWidth: 350,
+    borderRadius: 6,
   },
   button: {
     backgroundColor: "#7B22FF",
     padding: 15,
     marginTop: 10,
+    width: "100%",
+    maxWidth: 350,
+    borderRadius: 6,
   },
   buttonText: {
     color: "white",
@@ -92,8 +100,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   link: {
-    color: "white",
+    color: "#8A2BFF",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 25,
+    fontSize: 14,
+    fontWeight: "500",
   },
 });

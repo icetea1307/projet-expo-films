@@ -171,7 +171,7 @@ export default function MovieDetailScreen() {
           <Text style={styles.title}>{movie.title}</Text>
           <View style={styles.metaDataRow}>
             <Text style={styles.metaDataText}>{formatRuntime(movie.runtime)}</Text>
-            <Text style={styles.metaDataText}>{certification}</Text> {/* Modification ici */}
+            <Text style={styles.metaDataText}>{certification}</Text>
             <Text style={styles.metaDataText}>{movie.release_date?.substring(0, 4)}</Text>
             <Text style={styles.metaDataText}>4K UHD</Text>
           </View>
@@ -194,8 +194,8 @@ export default function MovieDetailScreen() {
             {movie.overview ? movie.overview : "Aucun synopsis disponible pour ce film."}
           </Text>
 
-          {/* 3. SECTION CONTENU SIMILAIRE */}
-          {similarMovies.length > 0 && (
+          {/* 3. SECTION CONTENU SIMILAIRE (CORRECTION ICI : Utilisation d'un ternaire au lieu d'un && ) */}
+          {similarMovies.length > 0 ? (
             <>
               <Text style={styles.sectionTitle}>Contenu similaire</Text>
               <FlatList
@@ -213,7 +213,7 @@ export default function MovieDetailScreen() {
                 )}
               />
             </>
-          )}
+          ) : null}
 
           {/* 4. ACCORDÉONS DYNAMIQUES */}
           <View style={styles.accordionsWrapper}>
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   accordionContent: {
     paddingBottom: 15,
   },
-  accordionText: { // AJOUT DU STYLE POUR LE TEXTE DES ACCORDÉONS
+  accordionText: {
     color: '#A1A1A6',
     fontSize: 14,
     marginBottom: 4,
